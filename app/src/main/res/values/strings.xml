@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DeskBy9 Metro</string>
+    
+    <!-- Journey Planning -->
+    <string name="journey_planning_title">Plan Your Journey</string>
+    <string name="from_label">From</string>
+    <string name="to_label">To</string>
+    <string name="select_origin">Select origin station</string>
+    <string name="select_destination">Select destination station</string>
+    <string name="use_gps">Use GPS</string>
+    <string name="select_manually">Select</string>
+    <string name="search_station">Search station…</string>
+    <string name="no_stations_available">No stations available</string>
+    <string name="no_results_found">No results found</string>
+    
+    <!-- Route Details -->
+    <string name="available_routes">Available Routes</string>
+    <string name="route_details">Route Details</string>
+    <string name="select_this_route">Select This Route</string>
+    <string name="selected">Selected</string>
+    <string name="duration">Duration</string>
+    <string name="transfers">Transfers</string>
+    <string name="distance">Distance</string>
+    <string name="fare">Fare</string>
+    <string name="interchange">Interchange</string>
+    <string name="transfer_here">Transfer here</string>
+    
+    <!-- Route Types -->
+    <string name="route_type_fastest">Fastest</string>
+    <string name="route_type_fewest_transfers">Fewest Transfers</string>
+    <string name="route_type_shortest">Shortest</string>
+    
+    <!-- Errors -->
+    <string name="error_location_permission">Location permission not granted</string>
+    <string name="error_location_unavailable">Unable to get current location</string>
+    <string name="error_load_stations">Failed to load stations</string>
+    <string name="error_search_failed">Search failed</string>
+    <string name="error_calculate_routes">Failed to calculate routes</string>
+    <string name="error_nearest_station">Failed to find nearest station</string>
+    
+    <!-- Actions -->
+    <string name="dismiss">Dismiss</string>
+    <string name="close">Close</string>
+    <string name="clear">Clear</string>
+    <string name="search">Search</string>
+</resources>
