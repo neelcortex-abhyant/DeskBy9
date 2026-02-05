@@ -9,6 +9,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.neelcortex.deskby9.metro.presentation.journey.JourneyPlanningScreen
 import com.neelcortex.deskby9.metro.ui.theme.DeskBy9Theme
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.neelcortex.deskby9.metro.presentation.chat.ChatBotScreen
+import com.neelcortex.deskby9.metro.presentation.live.LiveJourneyScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -24,7 +29,47 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    JourneyPlanningScreen()
+                    val navController = rememberNavController()
+
+                    NavHost(
+                        navController = navController,
+                        startDestination = "journey"
+                    ) {
+                        composable("journey") {
+                            JourneyPlanningScreen(
+                                onChatClick = {
+                                    navController.navigate("chat")
+                                },
+                                onLiveTrackingClick = {
+                                    navController.navigate("live_tracking")
+                                }
+                            )
+                        }
+
+                        composable("chat") {
+                            ChatBotScreen(
+                                onNavigateBack = {
+                                    navController.popBackStack()
+                                },
+                                onNavigateToLiveTracking = {
+                                    navController.navigate("live_tracking")
+                                },
+                                onNavigateToHome = {
+                                    navController.navigate("journey") {
+                                        popUpTo("journey") { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+                        
+                        composable("live_tracking") {
+                            LiveJourneyScreen(
+                                onStopJourney = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -233,7 +233,7 @@ class JourneyPlanningViewModel @Inject constructor(
                             it.copy(
                                 availableRoutes = routes,
                                 isLoadingRoutes = false,
-                                selectedRoute = routes.firstOrNull()
+                                selectedRoute = null
                             )
                         }
                     },

@@ -12,8 +12,8 @@ import java.util.UUID
 
 fun StationDto.toDomain(): Station {
     return Station(
-        id = stationCode, // Use station code as ID
-        name = stationName,
+        id = stationCode ?: id?.toString() ?: "UNKNOWN", // Use station code as ID, fallback to numeric ID
+        name = stationName ?: "Unknown Station",
         line = "", // Line info not directly available in station list
         latitude = latitude ?: 0.0,
         longitude = longitude ?: 0.0,
@@ -28,8 +28,8 @@ fun StationDto.toDomain(): Station {
 private fun parseTimeToMinutes(timeString: String): Int {
     val parts = timeString.split(":")
     return when (parts.size) {
-        3 -> parts[0].toInt() * 60 + parts[1].toInt() // hours:minutes:seconds
-        2 -> parts[0].toInt() // minutes:seconds
+        3 -> (parts[0].toIntOrNull() ?: 0) * 60 + (parts[1].toIntOrNull() ?: 0) // hours:minutes:seconds
+        2 -> parts[0].toIntOrNull() ?: 0 // minutes:seconds
         else -> 0
     }
 }
@@ -38,18 +38,22 @@ private fun parseTimeToMinutes(timeString: String): Int {
  * Convert RouteResponseDto to domain Route model
  */
 fun RouteResponseDto.toDomain(routeType: RouteType = RouteType.FASTEST): Route {
+    // Safety check for null route
+    val safeRoute = route ?: emptyList()
+    
     // Create stations from route path
     val allStations = mutableListOf<Station>()
     val segments = mutableListOf<RouteSegment>()
     
     // Extract all stations from the route
-    route.forEach { routeLine ->
-        routeLine.path.forEach { pathStation ->
+    safeRoute.forEach { routeLine ->
+        routeLine.path?.forEach { pathStation ->
+            val stationName = pathStation.name ?: "Unknown Station"
             allStations.add(
                 Station(
-                    id = pathStation.name.replace(" ", "_").uppercase(),
-                    name = pathStation.name,
-                    line = routeLine.line,
+                    id = stationName.replace(" ", "_").uppercase(),
+                    name = stationName,
+                    line = routeLine.line ?: "",
                     latitude = 0.0, // Not provided in route response
                     longitude = 0.0,
                     isInterchange = false,
@@ -63,12 +67,16 @@ fun RouteResponseDto.toDomain(routeType: RouteType = RouteType.FASTEST): Route {
     var previousStation: Station? = null
     var currentLine = ""
     
-    route.forEach { routeLine ->
-        routeLine.path.forEachIndexed { index, pathStation ->
+    safeRoute.forEach { routeLine ->
+        val safePath = routeLine.path ?: emptyList()
+        val safeLineName = routeLine.line ?: ""
+        
+        safePath.forEachIndexed { index, pathStation ->
+            val stationName = pathStation.name ?: "Unknown Station"
             val currentStation = Station(
-                id = pathStation.name.replace(" ", "_").uppercase(),
-                name = pathStation.name,
-                line = routeLine.line,
+                id = stationName.replace(" ", "_").uppercase(),
+                name = stationName,
+                line = safeLineName,
                 latitude = 0.0,
                 longitude = 0.0,
                 isInterchange = false,
@@ -76,12 +84,12 @@ fun RouteResponseDto.toDomain(routeType: RouteType = RouteType.FASTEST): Route {
             )
             
             if (previousStation != null) {
-                val isTransfer = currentLine != routeLine.line
+                val isTransfer = currentLine != safeLineName
                 segments.add(
                     RouteSegment(
                         fromStation = previousStation!!,
                         toStation = currentStation,
-                        line = routeLine.line,
+                        line = safeLineName,
                         durationMinutes = 2, // Approximate 2 minutes per station
                         distanceKm = 1.0, // Approximate 1 km per station
                         isTransfer = isTransfer
@@ -90,14 +98,17 @@ fun RouteResponseDto.toDomain(routeType: RouteType = RouteType.FASTEST): Route {
             }
             
             previousStation = currentStation
-            currentLine = routeLine.line
+            currentLine = safeLineName
         }
     }
     
+    val safeFrom = from ?: "Unknown Origin"
+    val safeTo = to ?: "Unknown Destination"
+    
     val originStation = allStations.firstOrNull() ?: Station(
-        id = "UNKNOWN",
-        name = from,
-        line = route.firstOrNull()?.line ?: "",
+        id = "UNKNOWN_ORIGIN",
+        name = safeFrom,
+        line = safeRoute.firstOrNull()?.line ?: "",
         latitude = 0.0,
         longitude = 0.0,
         isInterchange = false,
@@ -105,9 +116,9 @@ fun RouteResponseDto.toDomain(routeType: RouteType = RouteType.FASTEST): Route {
     )
     
     val destinationStation = allStations.lastOrNull() ?: Station(
-        id = "UNKNOWN",
-        name = to,
-        line = route.lastOrNull()?.line ?: "",
+        id = "UNKNOWN_DEST",
+        name = safeTo,
+        line = safeRoute.lastOrNull()?.line ?: "",
         latitude = 0.0,
         longitude = 0.0,
         isInterchange = false,
@@ -115,18 +126,19 @@ fun RouteResponseDto.toDomain(routeType: RouteType = RouteType.FASTEST): Route {
     )
     
     // Count transfers (number of line changes)
-    val numberOfTransfers = route.size - 1
+    val numberOfTransfers = (safeRoute.size - 1).coerceAtLeast(0)
+    val safeTotalTime = totalTime ?: "0:00"
     
     return Route(
-        id = UUID.randomUUID().toString(),
+        id = "${originStation.id}-${destinationStation.id}-${routeType.name}",
         origin = originStation,
         destination = destinationStation,
         segments = segments,
-        totalDurationMinutes = parseTimeToMinutes(totalTime),
-        totalDistanceKm = stations * 1.0, // Approximate
-        numberOfTransfers = numberOfTransfers.coerceAtLeast(0),
+        totalDurationMinutes = parseTimeToMinutes(safeTotalTime),
+        totalDistanceKm = (stations ?: 0).toDouble(), // Approximate
+        numberOfTransfers = numberOfTransfers,
         routeType = routeType,
-        fareRupees = fare.toDouble()
+        fareRupees = fare?.toDouble() ?: 0.0
     )
 }
 

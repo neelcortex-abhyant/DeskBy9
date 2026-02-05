@@ -11,6 +11,13 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
+import android.os.Looper
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -73,6 +80,40 @@ class LocationService @Inject constructor(
             fusedLocationClient.lastLocation.await()
         } catch (e: Exception) {
             null
+        }
+    }
+    /**
+     * Get location updates as a Flow
+     */
+    fun getLocationUpdates(intervalMs: Long = 5000): Flow<Location> = callbackFlow {
+        if (!hasLocationPermission()) {
+            close(SecurityException("Location permission not granted"))
+            return@callbackFlow
+        }
+
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, intervalMs)
+            .build()
+
+        val locationCallback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                result.locations.forEach { location ->
+                    trySend(location)
+                }
+            }
+        }
+
+        try {
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+        } catch (e: Exception) {
+            close(e)
+        }
+
+        awaitClose {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
         }
     }
 }

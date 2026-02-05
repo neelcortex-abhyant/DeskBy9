@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.CircularProgressIndicator as MaterialCircularProgressIndicator
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Place
@@ -17,6 +19,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.neelcortex.deskby9.metro.presentation.journey.components.RouteDetailsBottomSheet
+import com.neelcortex.deskby9.metro.presentation.journey.components.RouteSummaryScreen
 import com.neelcortex.deskby9.metro.presentation.journey.components.RouteOptionCard
 import com.neelcortex.deskby9.metro.presentation.journey.components.StationSearchDialog
 
@@ -26,10 +29,13 @@ import com.neelcortex.deskby9.metro.presentation.journey.components.StationSearc
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun JourneyPlanningScreen(
-    viewModel: JourneyPlanningViewModel = hiltViewModel()
+    viewModel: JourneyPlanningViewModel = hiltViewModel(),
+    onChatClick: () -> Unit = {},
+    onLiveTrackingClick: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsState()
     var showRouteDetails by remember { mutableStateOf(false) }
+    var showRouteSummary by remember { mutableStateOf(false) }
     
     // Location permissions
     val locationPermissions = rememberMultiplePermissionsState(
@@ -43,6 +49,16 @@ fun JourneyPlanningScreen(
         }
     }
     
+    if (showRouteSummary && state.selectedRoute != null) {
+        RouteSummaryScreen(
+            route = state.selectedRoute!!,
+            onModifyClick = {
+                showRouteSummary = false
+            }
+        )
+        return
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -52,6 +68,17 @@ fun JourneyPlanningScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onChatClick,
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Chat,
+                    contentDescription = "Chat Assistant"
+                )
+            }
         }
     ) { paddingValues ->
         Box(
@@ -104,7 +131,7 @@ fun JourneyPlanningScreen(
                                 .padding(32.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator()
+                            MaterialCircularProgressIndicator()
                         }
                     }
                 } else if (state.availableRoutes.isNotEmpty()) {
@@ -116,13 +143,15 @@ fun JourneyPlanningScreen(
                         )
                     }
                     
-                    items(state.availableRoutes) { route ->
+                    items(
+                        items = state.availableRoutes
+                    ) { route ->
                         RouteOptionCard(
                             route = route,
                             isSelected = route.id == state.selectedRoute?.id,
                             onClick = {
                                 viewModel.selectRoute(route)
-                                showRouteDetails = true
+                                showRouteSummary = true
                             }
                         )
                     }
@@ -170,7 +199,7 @@ fun JourneyPlanningScreen(
             onDismiss = { showRouteDetails = false },
             onConfirm = {
                 showRouteDetails = false
-                // TODO: Navigate to next phase (live tracking)
+                onLiveTrackingClick()
             }
         )
     }
@@ -246,7 +275,7 @@ private fun OriginSelectionCard(
                         enabled = !isLoadingLocation
                     ) {
                         if (isLoadingLocation) {
-                            CircularProgressIndicator(
+                            MaterialCircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
                                 strokeWidth = 2.dp
                             )
@@ -282,6 +311,7 @@ private fun OriginSelectionCard(
 /**
  * Card for destination selection
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DestinationSelectionCard(
     destinationStation: com.neelcortex.deskby9.metro.domain.model.Station?,

@@ -115,7 +115,7 @@ fun RouteDetailsBottomSheet(
  * Timeline item for a single station
  */
 @Composable
-private fun StationTimelineItem(
+fun StationTimelineItem(
     station: Station,
     isFirst: Boolean,
     isLast: Boolean,

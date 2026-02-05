@@ -7,13 +7,13 @@ import com.google.gson.annotations.SerializedName
  */
 data class StationDto(
     @SerializedName("id")
-    val id: Int,
+    val id: Int? = null,
     
     @SerializedName("station_name")
-    val stationName: String,
+    val stationName: String? = null,
     
     @SerializedName("station_code")
-    val stationCode: String,
+    val stationCode: String? = null,
     
     @SerializedName("station_facility")
     val stationFacility: List<StationFacilityDto>? = null,
@@ -85,10 +85,10 @@ data class LineDto(
  */
 data class RoutePathStationDto(
     @SerializedName("name")
-    val name: String,
+    val name: String? = null,
     
     @SerializedName("status")
-    val status: String
+    val status: String? = null
 )
 
 /**
@@ -96,13 +96,13 @@ data class RoutePathStationDto(
  */
 data class RouteLineDto(
     @SerializedName("line")
-    val line: String,
+    val line: String? = null,
     
     @SerializedName("line_no")
-    val lineNo: Int,
+    val lineNo: Int? = null,
     
     @SerializedName("path")
-    val path: List<RoutePathStationDto>
+    val path: List<RoutePathStationDto>? = null
 )
 
 /**
@@ -110,13 +110,13 @@ data class RouteLineDto(
  */
 data class StationStatusDto(
     @SerializedName("status")
-    val status: String,
+    val status: String? = null,
     
     @SerializedName("title")
-    val title: String,
+    val title: String? = null,
     
     @SerializedName("note")
-    val note: String
+    val note: String? = null
 )
 
 /**
@@ -124,27 +124,27 @@ data class StationStatusDto(
  */
 data class RouteResponseDto(
     @SerializedName("stations")
-    val stations: Int,
+    val stations: Int? = null,
     
     @SerializedName("from")
-    val from: String,
+    val from: String? = null,
     
     @SerializedName("to")
-    val to: String,
+    val to: String? = null,
     
     @SerializedName("from_station_status")
-    val fromStationStatus: StationStatusDto,
+    val fromStationStatus: StationStatusDto? = null,
     
     @SerializedName("to_station_status")
-    val toStationStatus: StationStatusDto,
+    val toStationStatus: StationStatusDto? = null,
     
     @SerializedName("total_time")
-    val totalTime: String, // Format: "0:52:30"
+    val totalTime: String? = null, // Format: "0:52:30"
     
     @SerializedName("fare")
-    val fare: Int,
+    val fare: Int? = null,
     
     @SerializedName("route")
-    val route: List<RouteLineDto>
+    val route: List<RouteLineDto>? = null
 )
 
